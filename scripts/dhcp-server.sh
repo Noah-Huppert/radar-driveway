@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-set -e # Exit on error
-
 # Static variables
 declare -r PROG_DIR=$(dirname $(realpath "$0"))
 declare -r ENV_FILE="$PROG_DIR/../.env"
@@ -17,6 +15,10 @@ source "$ENV_FILE"
 mkdir -p "$RUN_TMP_DIR"
 touch "$LEASE_FILE"
 
-# Run server
-echo "running dhcpd with sudo"
-sudo dhcpd -f -cf "$DHCPD_CONF_FILE" -lf "$LEASE_FILE" -user "$USER" -group "$USER" "$NETWORK_INTERFACE"
+# Associate the 10.0.0.0/24 subnet with the network interface
+echo "using sudo to set an address for '$NETWORK_INTERFACE'"
+sudo ip addr add 10.0.0.0/24 dev "$NETWORK_INTERFACE"
+
+# Start the DHCP server
+echo "using sudo to run the DHCP server"
+sudo dhcpd -f -d -cf "$DHCPD_CONF_FILE" --no-pid -lf "$LEASE_FILE" -user "$USER" -group "$USER" "$NETWORK_INTERFACE"
