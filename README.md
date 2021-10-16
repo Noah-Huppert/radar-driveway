@@ -17,21 +17,18 @@ A private network between the development machine and the Raspberry Pi is set up
 1. First setup the Raspberry PI with an operating system, and make it so you can SSH in (For Raspberry PI OS put a file named `ssh` in the boot directory).
 2. Connect an Ethernet cable between the Raspberry PI and your computer.
 3. Make a copy of `.env-example` named `.env` and add your own configuration values. 
-4. Run the DHCP server:  
+4. Run the DHCP and mDNS server:  
    ```
-   ./scripts/dhcp-server.sh &
+   ./scripts/dev-network.sh &
    ```
-5. Find the Raspberry Pi's IP.  
-   There is no specific configuration which dictates what the Pi's IP will be. One can do the following things to find the IP:
-  - Examine the DHCP server leases file to find the Raspberry PI's IP:
-    ```
-    cat ./.run/leases
-    ```
-  - Scan the private network for the Pi:  
-    ```
-	nmap 10.0.0.0/24
-	```
-	One should see the development machine's IP (Which can be found using `ip addr show <ethernet interface>`) and another IP running an SSH server. This is the Pi.
-6. SSH in. For Raspberry Pi OS the default username is `pi` and the password is `raspberry`.
+   The DHCP server will assign IP addresses for the private network between the development machine and the Pi.  
+   
+   The mDNS server will allow you to send network traffic to the Pi without knowing its IP. Instead all you need to know is the hostname of the Raspberry Pi. Then you can address the Pi on the `.local` DNS domain.  
+   
+   To find the hostname inspect the DHCP server's leases file, look at the `client-hostname` field: `cat ./.run/leases` (For Raspberry Pi OS the hostname will probably be `raspberrypi`).
+5. SSH in. For Raspberry Pi OS the default username is `pi` and the password is `raspberry`:  
+   ```
+   ssh pi@raspberrypi.local
+   ```
 
 
