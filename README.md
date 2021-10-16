@@ -16,7 +16,7 @@ This code was developed to run on a Raspberry Pi connected to the development ma
 
 A C++ cross compile toolchain for this target is also required (The package may be named something like `cross-arm-linux-gnueabihf`).
 
-If the GCC executable is named anything other than `arm-linux-gnueabihf-gcc` then you must edit the [`radar_ctl/.cargo/config.toml`](./radar_ctl/.cargo/config.toml) file.
+If the GCC executable is named anything other than `arm-linux-gnueabihf-gcc` then you must edit the [`radar_ctl/.cargo/config.toml`](./radar_ctl/.cargo/config.toml) file's `linker` key with your executable's name.
 
 ## Connecting To Raspberry PI
 A private network between the development machine and the Raspberry Pi is set up to upload and diagnose code. This subnet occupies the 10.0.0.0/24 CIDR block (To change this edit the `SUBNET_CIDR` variable in [`scripts/dhcp-server.sh`](./scripts/dhcp-server.sh) and edit [`conf/dhcpd.conf`](./conf/dhcpd.conf) with the different subnet and range).
