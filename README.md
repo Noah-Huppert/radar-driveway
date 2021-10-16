@@ -40,4 +40,13 @@ The [ISC DHCP server](https://www.isc.org/dhcp/) and [Avahi mDNS server](https:/
    ssh pi@raspberrypi.local
    ```
 
+## Development Workflow
+First complete the above sections.
 
+The `rsync` and `ssh` tools are required.
+
+To compile, upload, and then run the code execute the `dev.sh` script:
+
+```
+./radar_ctl/scripts/dev.sh
+```
