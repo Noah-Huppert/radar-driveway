@@ -35,9 +35,9 @@ The [ISC DHCP server](https://www.isc.org/dhcp/) and [Avahi mDNS server](https:/
    The mDNS server will allow you to send network traffic to the Pi without knowing its IP. Instead all you need to know is the hostname of the Raspberry Pi. Then you can address the Pi on the `.local` DNS domain.  
    
    To find the hostname inspect the DHCP server's leases file, look at the `client-hostname` field: `cat ./.run/leases` (For Raspberry Pi OS the hostname will probably be `raspberrypi`).
-5. SSH in. For Raspberry Pi OS the default username is `pi` and the password is `raspberry`:  
+5. Copy your SSH keys to the Raspberry Pi (This way you don't have to type in your password every time). For Raspberry Pi OS the default username is `pi` and the password is `raspberry`:  
    ```
-   ssh pi@raspberrypi.local
+   ssh-copy-id <username>@<hostname>.local
    ```
 
 ## Development Workflow
