@@ -12,6 +12,9 @@ declare -r RUN_TMP_DIR="$REPO_ROOT/.run"
 
 declare -r SUBNET_CIDR="10.0.0.0/24"
 
+declare -r RUST_PROJ_ROOT="$REPO_ROOT/radar_ctl"
+declare -r RUST_TARGET="armv7-unknown-linux-gnueabihf"
+
 declare -ri EXIT_MISSING_COMMON_BINS=100
 declare -ri EXIT_INCORRECT_COMMON_BINS=101
 declare -ri EXIT_CONF_FILE=102

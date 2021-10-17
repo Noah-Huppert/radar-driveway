@@ -3,11 +3,41 @@
 source "$(dirname "$(realpath "$0")")/common.sh"
 
 declare -ri EXIT_BAD_SVC=110
+declare -ri EXIT_UKNOWN_OPT=111
+
+# Show help text
+show_help() {
+    cat <<EOF
+dev-network.sh - Run a development network
+
+USAGE
+
+  dev-network.sh [-h]
+
+OPTIONS
+
+  -h    Show help text
+
+BEHAVIOR
+
+  Runs services required to create a development network.
+
+EOF
+    exit 0
+}
 
 # Programs to run which make up dev network
 declare -ra SVCS=("dhcp-server.sh" "mdns-server.sh")
 
 declare -a wait_pids=() # string "tuples" in format "svc_name pid"
+
+# Options
+while getopts "h" opt; do
+    case "$opt" in
+	   h) show_help ;;
+	   '?') die "$EXIT_UNKNOWN_OPT" "Unknown option" ;;
+    esac
+done
 
 # Wait for services
 wait_svcs() {
