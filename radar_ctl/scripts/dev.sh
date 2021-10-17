@@ -1,33 +1,51 @@
 #!/usr/bin/env bash
 # Static variables
-declare -r PROG_DIR=$(dirname $(realpath "$0"))
-declare -r RUST_PROJ_ROOT="$PROG_DIR/.."
-declare -r REPO_DIR="$PROG_DIR/../.."
-declare -r ENV_FILE="$REPO_DIR/.env"
-declare -r RUST_TARGET="armv7-unknown-linux-gnueabihf"
+source "$(dirname "$(realpath "$0")")/../../scripts/common.sh"
 
-declare -r BUILD_OUT_FILE="$RUST_PROJ_ROOT/target/$RUST_TARGET/debug/radar_ctl"
 declare -r REMOTE_FILE="/tmp/radar_ctl"
 
-# Load configuration
-source "$ENV_FILE"
+declare -ri EXIT_UNKNOWN_OPT=110
+declare -ri EXIT_BUILD=111
+declare -ri EXIT_UPLOAD=112
+declare -ri EXIT_RUN=113
 
-declare -r PI_SSH_URI="${PI_USER}@${PI_HOSTNAME}.local"
+# Show help text
+show_help() {
+    cat <<EOF
+dev.sh - Build, upload, and run
+
+USAGE
+
+  dev.sh [-h]
+
+OPTIONS
+
+  -h    Show help text
+
+BEHAVIOR
+
+  Build project, then upload the result and run it on the Raspberry Pi.
+
+EOF
+    exit 0
+}
+
+# Options
+while getopts "h" opt; do
+    case "$opt" in
+	   h) show_help ;;
+	   '?') die "$EXIT_UNKNOWN_OPT" "Unknown option" ;;
+    esac
+done
 
 # Build
-if ! "$PROG_DIR/build.sh"; then
-    echo "failed to build" >&2
-    exit 1
-fi
+run_check "$EXIT_BUILD" "Failed to build" \
+		"$RUST_PROJ_ROOT/scripts/build.sh"
 
 # Upload
-if ! rsync "$BUILD_OUT_FILE" "$PI_SSH_URI:$REMOTE_FILE"; then
-    echo "failed to upload" >&2
-    exit 1
-fi
+run_check "$EXIT_BUILD" "Failed to upload" \
+		"$RUST_PROJ_ROOT/scripts/upload.sh "$RUST_BUILD_OUT_FILE" "$REMOTE_FILE""
 
 # Run
-if ! ssh "$PI_SSH_URI" "$REMOTE_FILE"; then
-    echo "failed to run on pi" >&2
-    exit 1
-fi
+run_check "$EXIT_BUILD" "Failed to run" \
+		"$RUST_PROJ_ROOT/scripts/ssh.sh "$REMOTE_FILE""

@@ -14,6 +14,7 @@ declare -r SUBNET_CIDR="10.0.0.0/24"
 
 declare -r RUST_PROJ_ROOT="$REPO_ROOT/radar_ctl"
 declare -r RUST_TARGET="armv7-unknown-linux-gnueabihf"
+declare -r RUST_BUILD_OUT_FILE="$RUST_PROJ_ROOT/target/$RUST_TARGET/debug/radar_ctl"
 
 declare -ri EXIT_MISSING_COMMON_BINS=100
 declare -ri EXIT_INCORRECT_COMMON_BINS=101
