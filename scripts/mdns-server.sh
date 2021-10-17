@@ -1,27 +1,25 @@
 #!/usr/bin/env bash
-# Static variables
-declare -r PROG_DIR=$(dirname $(realpath "$0"))
-declare -r ENV_FILE="$PROG_DIR/../.env"
-
-declare -r SUBNET_CIDR="10.0.0.0/24"
-
-declare -r RUN_TMP_DIR="$PROG_DIR/../.run"
+# Constants
+source "$(dirname "$(realpath "$0")")/common.sh"
 
 declare -r AVAHI_CONF_FILE="$RUN_TMP_DIR/avahi.conf"
 
-# Configuration
-source "$ENV_FILE"
+declare -ri EXIT_SET_AVAHI_CONF=110
+declare -ri EXIT_RUN_AVAHI=111
 
-# Create working directories
-mkdir -p "$RUN_TMP_DIR"
-
-# Dynamically create Avahi configuration file
-cat <<EOF | tee "$AVAHI_CONF_FILE"
+avahi_conf() {
+    cat <<EOF
 [server]
 allow-interfaces=$NETWORK_INTERFACE
 enable-dbus=no
 EOF
+}
+
+# Dynamically create Avahi configuration file
+run_check "$EXIT_SET_AVAHI_CONF" "Failed to write Avahi configuration file" \
+		"avahi_conf | tee "$AVAHI_CONF_FILE" &> /dev/null"
 
 # Start the Avahi mDNS Daemon
-echo "using sudo to start Avahi daemon"
-sudo avahi-daemon -f "$AVAHI_CONF_FILE"
+log "using sudo to start Avahi daemon"
+run_check "$EXIT_RUN_AVAHI" "Failed to run Avahi daemon" \
+		"sudo avahi-daemon -f "$AVAHI_CONF_FILE" |& prefix_input avahi"

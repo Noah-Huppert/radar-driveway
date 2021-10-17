@@ -1,27 +1,29 @@
 #!/usr/bin/env bash
-# Static variables
-declare -r PROG_DIR=$(dirname $(realpath "$0"))
-declare -r ENV_FILE="$PROG_DIR/../.env"
-
-declare -r SUBNET_CIDR="10.0.0.0/24"
-
-declare -r RUN_TMP_DIR="$PROG_DIR/../.run"
+# Consants
+source "$(dirname "$(realpath "$0")")/common.sh"
 
 declare -r DHCPD_CONF_FILE="$PROG_DIR/dhcpd.conf"
 declare -r DHCPD_LEASE_FILE="$RUN_TMP_DIR/leases"
 declare -r DHCPD_PID_FILE="$RUN_TMP_DIR/dhcpd.pid"
 
-# Configuration
-source "$ENV_FILE"
+declare -ri EXIT_TOUCH_LEASE_FILE=110
+declare -ri EXIT_SHOW_ADDR=111
+declare -ri EXIT_ADD_ADDR=112
 
-# Create working directories
-mkdir -p "$RUN_TMP_DIR"
-touch "$DHCPD_LEASE_FILE"
+# Create lease file to work with
+run_check "$EXIT_TOUCH_LEASE_FILE" "Failed to make DHCP server lease file" \
+		"touch "$DHCPD_LEASE_FILE""
 
 # Associate the $SUBNET_CIDR subnet with the network interface
-echo "using sudo to set an address for '$NETWORK_INTERFACE'"
-sudo ip addr add "$SUBNET_CIDR" dev "$NETWORK_INTERFACE"
+if ! run_check "$EXIT_SHOW_ADDR" "Failed to list addresses for '$NETWORK_INTERFACE'" "ip addr show "$NETWORK_INTERFACE"" | grep "$SUBNET_CIDR" &> /dev/null; then
+    log "using sudo to set an address for '$NETWORK_INTERFACE'"
+    run_check "$EXIT_ADD_ADDR" "Failed to add private subnet CIDR '$SUBNET_CIDR' to interface '$NETWORK_INTERFACE'" \
+		    "sudo ip addr add "$SUBNET_CIDR" dev "$NETWORK_INTERFACE""
+else
+    log "Network interface '$NETWORK_INTERFACE' already associated with '$SUBNET_CIDR'"
+fi
 
 # Start the DHCP server
-echo "using sudo to run the DHCP server"
-sudo dhcpd -f -d -cf "$DHCPD_CONF_FILE" -pf "$DHCPD_PID_FILE" -lf "$DHCPD_LEASE_FILE" -user "$USER" -group "$USER" "$NETWORK_INTERFACE"
+log "using sudo to run the DHCP server"
+run_check "$EXIT_RUN_DHCPD" "Failed to run DHCP server on '$NETWORK_INTERFACE'" \
+		"sudo dhcpd -f -d -cf "$DHCPD_CONF_FILE" -pf "$DHCPD_PID_FILE" -lf "$DHCPD_LEASE_FILE" -user "$USER" -group "$USER" "$NETWORK_INTERFACE" |& prefix_input dhcpd"

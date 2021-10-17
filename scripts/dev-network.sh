@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Static variables
-declare -r PROG_DIR=$(dirname $(realpath "$0"))
+# Constants
+source "$(dirname "$(realpath "$0")")/common.sh"
+
+declare -ri EXIT_BAD_SVC=110
+
+# Programs to run which make up dev network
 declare -ra SVCS=("dhcp-server.sh" "mdns-server.sh")
 
 declare -a wait_pids=() # string "tuples" in format "svc_name pid"
@@ -11,18 +15,18 @@ wait_svcs() {
 	   svc_name=$(awk '{ print $1 }' <<< "$pid_tuple")
 	   svc_pid=$(awk '{ print $2 }' <<< "$pid_tuple")
 
-	   echo "waiting for $svc_name ($svc_pid)"
+	   log "waiting for $svc_name ($svc_pid)"
 	   wait "$svc_pid"
-	   echo "killed $svc_name (exit status $?)"
+	   log "killed $svc_name (exit status $?)"
     done
 }
 
 # Validate services
 for svc in "${SVCS[@]}"; do
-        svc_file="$PROG_DIR/$svc"
+    svc_file="$PROG_DIR/$svc"
     
     if ! [[ -f "$svc_file" ]]; then
-	   echo "$svc does not exist"
+	   die "$EXIT_BAD_SVC" "$svc does not exist"
     fi
 done
 
@@ -30,14 +34,14 @@ done
 for svc in "${SVCS[@]}"; do
     svc_file="$PROG_DIR/$svc"
     
-    ("$svc_file" |& sed "s/^/$svc: /g") &
+    "$svc_file" &
     pid=$!
     wait_pids+=("$svc $pid")
     
-    echo "started $svc ($pid)"
+    log "started $svc ($pid)"
 done
 
 # When script receives ctrl+c gracefully stop services
-trap "echo gracefully stopping" SIGINT
+trap "log gracefully stopping" SIGINT
 
 wait_svcs
